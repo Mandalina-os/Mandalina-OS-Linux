@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - name: Depoyu Klonla
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Linux Sistemini Güncelle ve Geliştirici Araçlarını Kur
       run: |
@@ -29,7 +29,7 @@ jobs:
         touch mandalina_os_normal.iso
 
     - name: Bitmiş ISO Dosyasını Windows'a İndirmek İçin Hazırla
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Mandalina_OS_Normal_x64
         path: live-boot/*.iso
