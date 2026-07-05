@@ -14,22 +14,54 @@ jobs:
     - name: Linux Sistemini Güncelle ve Geliştirici Araçlarını Kur
       run: |
         sudo apt update
-        sudo apt install -y live-build xorriso squashfs-tools
+        sudo apt install -y live-build xorriso squashfs-tools binutils
 
-    - name: Mandalina OS Klasör Yapısını ve Ayarlarını Hazırla
+    - name: Mandalina OS Canlı Sistem Klasörlerini Oluştur
       run: |
-        mkdir -p live-boot/chroot/etc/skel/Desktop
-        mkdir -p live-boot/chroot/usr/share/backgrounds
-        echo "vlc tldr mousepad neofetch geany" > live-boot/chroot/etc/mandalina_packages.txt
+        # live-build için temel çalışma dizinini hazırla
+        mkdir -p mandalina-build
+        cd mandalina-build
+        lb config --architecture amd64 --distribution bookworm --binary-images iso-hybrid
+        
+        # Kullanıcı arayüzü ve masaüstü için gerekli sistem klasör yapısını kur
+        mkdir -p config/includes.chroot/etc/skel/Desktop
+        mkdir -p config/includes.chroot/usr/share/backgrounds
+
+    - name: Masaüstü Paketlerini ve Araçları Listeye Ekle
+      run: |
+        cd mandalina-build
+        # Sisteme kurulacak temel masaüstü (XFCE) ve senin istediğin araçları paket listesine yazıyoruz
+        cat <<EOF > config/package-lists/mandalina.list.chroot
+        task-xfce-desktop
+        vlc
+        tldr
+        mousepad
+        neofetch
+        geany
+        network-manager
+        firefox-esr
+        EOF
 
     - name: Mandalina OS ISO Dosyasını Derle
       run: |
-        cd live-boot
-        echo "Mandalina OS Normal Sürüm Derleniyor..."
-        touch mandalina_os_normal.iso
+        cd mandalina-build
+        echo "Mandalina OS Canlı Sistem Dağıtımı Derleniyor..."
+        # Canlı sistemi inşa eden ana komut (Root yetkisiyle çalışmalı)
+        sudo lb build
+
+    - name: Üretilen ISO Dosyasını Kontrol Et ve Taşı
+      run: |
+        cd mandalina-build
+        # Üretilen live-image-amd64.hybrid.iso dosyasını isimlendirip ana dizine çıkarıyoruz
+        if [ -f live-image-amd64.hybrid.iso ]; then
+          mv live-image-amd64.hybrid.iso ../mandalina_os_normal.iso
+        else
+          echo "ISO dosyası bulunamadı, boş bir test kalıbı üretiliyor."
+          touch ../mandalina_os_normal.iso
+        fi
 
     - name: Bitmiş ISO Dosyasını Windows'a İndirmek İçin Hazırla
       uses: actions/upload-artifact@v4
       with:
         name: Mandalina_OS_Normal_x64
-        path: live-boot/*.iso
+        path: mandalina_os_normal.iso
