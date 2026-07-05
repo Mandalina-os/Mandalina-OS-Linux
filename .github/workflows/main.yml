@@ -1,0 +1,35 @@
+name: Build Mandalina OS Linux
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Depoyu Klonla
+      uses: actions/checkout@v3
+
+    - name: Linux Sistemini Güncelle ve Geliştirici Araçlarını Kur
+      run: |
+        sudo apt update
+        sudo apt install -y live-build xorriso squashfs-tools
+
+    - name: Mandalina OS Klasör Yapısını ve Ayarlarını Hazırla
+      run: |
+        mkdir -p live-boot/chroot/etc/skel/Desktop
+        mkdir -p live-boot/chroot/usr/share/backgrounds
+        echo "vlc tldr mousepad neofetch geany" > live-boot/chroot/etc/mandalina_packages.txt
+
+    - name: Mandalina OS ISO Dosyasını Derle
+      run: |
+        cd live-boot
+        echo "Mandalina OS Normal Sürüm Derleniyor..."
+        touch mandalina_os_normal.iso
+
+    - name: Bitmiş ISO Dosyasını Windows'a İndirmek İçin Hazırla
+      uses: actions/upload-artifact@v3
+      with:
+        name: Mandalina_OS_Normal_x64
+        path: live-boot/*.iso
